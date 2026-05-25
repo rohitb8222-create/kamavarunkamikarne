@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>सुमित एल्कोप्लास्ट - कामावरून कमी करण्याबाबतचे पत्र जनरेटर</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; background-color: #f4f6f9; padding: 20px; margin: 0; color: #333; }
+        .container { max-width: 900px; background: white; padding: 30px; margin: auto; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        .header-box { text-align: center; border-bottom: 3px solid #004d99; margin-bottom: 20px; padding-bottom: 15px; }
+        .header-box h1 { color: #004d99; margin: 0; font-size: 24px; font-weight: 700; }
+        .header-box p { margin: 5px 0 0 0; font-size: 16px; color: #555; font-weight: 600; }
+        #status { text-align: center; font-weight: bold; margin-bottom: 20px; font-size: 15px; }
+        
+        .section-title { font-size: 16px; color: #004d99; font-weight: 600; margin-top: 15px; margin-bottom: 10px; border-left: 4px solid #004d99; padding-left: 8px; }
+        
+        .input-section { display: grid; grid-template-columns: 1fr; gap: 15px; background: #f9fbfd; padding: 20px; border-radius: 8px; border: 1px solid #e1e8ed; margin-bottom: 20px; }
+        @media (min-width: 600px) { .input-section { grid-template-columns: 1fr 1fr; } }
+        
+        label { font-weight: 600; font-size: 14px; color: #444; display: block; margin-bottom: 5px; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 14px; font-family: 'Poppins', sans-serif; }
+        input[readonly] { background: #e9ecef; color: #495057; cursor: not-allowed; }
+        
+        .month-days-container { grid-column: 1 / -1; background: #fff; padding: 15px; border: 1px solid #ddd; border-radius: 6px; }
+        .month-row { display: grid; grid-template-columns: 2fr 2fr 1fr; gap: 10px; margin-bottom: 10px; align-items: center; }
+        
+        .btn-add { background-color: #007bff; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; margin-top: 5px; font-family: 'Poppins', sans-serif; }
+        .btn-add:hover { background-color: #0056b3; }
+        .btn-remove { background-color: #dc3545; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer; font-size: 13px; font-family: 'Poppins', sans-serif; }
+        .btn-remove:hover { background-color: #bd2130; }
+        
+        .letterhead-section { grid-column: 1 / -1; background: #fff3cd; border: 1px solid #ffeeba; padding: 15px; border-radius: 6px; }
+        
+        .print-config { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #f1f3f5; padding: 12px; border-radius: 6px; }
+
+        button.btn-generate { grid-column: 1 / -1; background: #28a745; color: white; border: none; padding: 15px; cursor: pointer; font-size: 18px; font-weight: 600; border-radius: 6px; margin-top: 15px; transition: background 0.2s; font-family: 'Poppins', sans-serif; }
+        button.btn-generate:hover { background-color: #218838; }
+        
+        /* Print Output Styles - Adjusted for Single Page Fit */
+        #notice-output-wrapper { display: none; background: white; padding: 0; position: relative; }
+        #notice-output { padding: 30px; line-height: 1.5; font-size: 15px; color: black; position: relative; box-sizing: border-box; }
+        
+        .letterhead-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; background-repeat: no-repeat; background-size: 100% 100%; display: none; pointer-events: none; }
+        .letter-content { position: relative; z-index: 2; width: 100%; }
+        
+        .default-header { text-align: center; margin-bottom: 15px; border-bottom: 2px solid #000; padding-bottom: 8px; }
+        .default-header h2 { margin: 0; font-size: 22px; color: #000; font-weight: 700; }
+        
+        .letter-title { text-align: center; font-weight: 700; text-decoration: underline; font-size: 18px; margin-top: 15px; margin-bottom: 20px; }
+        .meta-info { display: table; width: 100%; margin-bottom: 15px; }
+        .meta-row { display: table-row; }
+        .meta-label { display: table-cell; font-weight: 600; width: 160px; padding: 3px 0; }
+        .meta-value { display: table-cell; padding: 3px 0; }
+        
+        .letter-text { text-align: justify; text-indent: 40px; margin-bottom: 15px; font-size: 15px; }
+        .sign-section { margin-top: 35px; font-weight: 600; float: right; text-align: right; width: 300px; line-height: 1.4; }
+        
+        @media print {
+            @page { size: A4; margin: 0; }
+            body { background: white; padding: 0; margin: 0; }
+            .container, .input-section, button, .header-box, #status, .section-title { display: none !important; }
+            #notice-output-wrapper { display: block !important; width: 210mm; height: 297mm; overflow: hidden; page-break-inside: avoid; }
+            #notice-output { width: 100%; height: 100%; box-sizing: border-box; }
+            .letterhead-bg { display: block !important; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        }
+    </style>
+</head>
+<body onload="initSheet()">
+
+<div class="container">
+    <div class="header-box">
+        <h1>सुमित एल्कोप्लास्ट कल्याण एम एस डब्लू प्रा. लि.</h1>
+        <p>कामावरून कमी करण्याबाबतचे पत्र जनरेटर</p>
+    </div>
+
+    <div id="status" style="color: blue;">डेटा कनेक्ट होत आहे, कृपया थांबा...</div>
+
+    <div class="input-section">
+        <div style="grid-column: 1 / -1;"><div class="section-title">कर्मचारी व पत्राची माहिती</div></div>
+        <div>
+            <label>EMP CODE (तिकीट नंबर):</label>
+            <input type="text" id="emp-id" placeholder="ID टाका..." oninput="findEmployee()">
+        </div>
+        <div>
+            <label>पूर्ण नाव (Full Name):</label>
+            <input type="text" id="emp-name" placeholder="कर्मचाऱ्याचे नाव">
+        </div>
+        <div>
+            <label>विभाग (Department):</label>
+            <input type="text" id="emp-dept" value="ऑपरेशन्स" placeholder="उदा. ऑपरेशन्स">
+        </div>
+        <div>
+            <label>पत्राची तारीख (Letter Date):</label>
+            <input type="date" id="letter-date">
+        </div>
+        
+        <div style="grid-column: 1 / -1;">
+            <label>दिलेली ताकीद निवडा (Warning Type):</label>
+            <select id="warning-type">
+                <option value="ताकीत पत्र">ताकीत पत्र</option>
+                <option value="मौखिक ताकीत">मौखिक ताकीत</option>
+                <option value="ताकीत पत्र आणि मौखिक ताकीत">ताकीत पत्र आणि मौखिक ताकीत</option>
+            </select>
+        </div>
+
+        <div class="month-days-container">
+            <div class="section-title" style="margin-top:0;">गैरहजेरीचा महिना व दिवस निवडा</div>
+            <div id="month-rows-wrapper">
+                <div class="month-row">
+                    <select class="month-select">
+                        <option value="जानेवारी २०२६">जानेवारी २०२६</option>
+                        <option value="फेब्रुवारी २०२६">फेब्रुवारी २०२६</option>
+                        <option value="मार्च २०२६" selected>मार्च २०२६</option>
+                        <option value="एप्रिल २०२६">एप्रिल २०२६</option>
+                        <option value="मे २०२६">मे २०२६</option>
+                        <option value="जून २०२६">जून २०२६</option>
+                        <option value="जुलै २०२६">जुलै २०२६</option>
+                        <option value="ऑगस्ट २०२६">ऑगस्ट २०२६</option>
+                        <option value="सप्टेंबर २०२६">सप्टेंबर २०२६</option>
+                        <option value="ऑक्टोबर २०२६">ऑक्टोबर २०२६</option>
+                        <option value="नोव्हेंबर २०२६">नोव्हेंबर २०२६</option>
+                        <option value="डिसेंबर २०२६">डिसेंबर २०२६</option>
+                    </select>
+                    <input type="number" class="days-input" placeholder="गैरहजर दिवस" oninput="calculateTotalDays()">
+                    <button class="btn-remove" onclick="removeRow(this)">X</button>
+                </div>
+                <div class="month-row">
+                    <select class="month-select">
+                        <option value="जानेवारी २०२६">जानेवारी २०२६</option>
+                        <option value="फेब्रुवारी २०२६">फेब्रुवारी २०२६</option>
+                        <option value="मार्च २०२६">मार्च २०२६</option>
+                        <option value="एप्रिल २०२६" selected>एप्रिल २०२६</option>
+                        <option value="मे २०२६">मे २०२६</option>
+                        <option value="जून २०२६">जून २०२६</option>
+                        <option value="जुलै २०२६">जुलै २०२६</option>
+                        <option value="ऑगस्ट २०२६">ऑगस्ट २०२६</option>
+                        <option value="सप्टेंबर २०२६">सप्टेंबर २०२६</option>
+                        <option value="ऑक्टोबर २०२६">ऑक्टोबर २०२६</option>
+                        <option value="नोव्हेंबर २०२६">नोव्हेंबर २०२६</option>
+                        <option value="डिसेंबर २०२६">डिसेंबर २०२६</option>
+                    </select>
+                    <input type="number" class="days-input" placeholder="गैरहजर दिवस" oninput="calculateTotalDays()">
+                    <button class="btn-remove" onclick="removeRow(this)">X</button>
+                </div>
+                <div class="month-row">
+                    <select class="month-select">
+                        <option value="जानेवारी २०२६">जानेवारी २०२६</option>
+                        <option value="फेब्रुवारी २०२६">फेब्रुवारी २०२६</option>
+                        <option value="मार्च २०२६">मार्च २०२६</option>
+                        <option value="एप्रिल २०२६">एप्रिल २०२६</option>
+                        <option value="मे २०२६" selected>मे २०२६</option>
+                        <option value="जून २०२६">जून २०२६</option>
+                        <option value="जुलै २०२६">जुलै २०२६</option>
+                        <option value="ऑगस्ट २०२६">ऑगस्ट २०२६</option>
+                        <option value="सप्टेंबर २०२६">सप्टेंबर २०२६</option>
+                        <option value="ऑक्टोबर २०२६">ऑक्टोबर २०२६</option>
+                        <option value="नोव्हेंबर २०२६">नोव्हेंबर २०२६</option>
+                        <option value="डिसेंबर २०२६">डिसेंबर २०२६</option>
+                    </select>
+                    <input type="number" class="days-input" placeholder="गैरहजर दिवस" oninput="calculateTotalDays()">
+                    <button class="btn-remove" onclick="removeRow(this)">X</button>
+                </div>
+            </div>
+            <button class="btn-add" onclick="addMonthRow()">+ आणखी महिना जोडा</button>
+            <div style="margin-top: 12px; font-weight: 600; color: #004d99;">
+                एकूण गैरहजर दिवस: <span id="total-days-disp">0</span> दिवस
+            </div>
+        </div>
+
+        <div class="letterhead-section">
+            <label style="color: #856404;"><strong>कंपनी लेटरहेड अपलोड करा (पर्यायी):</strong></label>
+            <input type="file" id="letterhead-upload" accept="image/*" onchange="handleLetterhead(this)">
+            <p style="margin: 5px 0 0 0; font-size: 12px; color: #666;">टीप: लेटरहेड इमेज अपलोड केल्यास पत्रावरील कंपनीचे नाव (Text Header) आपोआप लपवले जाईल.</p>
+        </div>
+        
+        <div class="print-config">
+            <div>
+                <label>वरची मार्जिन (Top Padding px):</label>
+                <input type="number" id="top-padding" value="40" oninput="adjustPadding()" placeholder="उदा. 150 (लेटरहेडसाठी)">
+            </div>
+            <div>
+                <label>बाजूची मार्जिन (Side Padding px):</label>
+                <input type="number" id="side-padding" value="40" oninput="adjustPadding()">
+            </div>
+        </div>
+
+        <button class="btn-generate" onclick="generateAndPrint()">पत्र जनरेट करा व प्रिंट करा</button>
+    </div>
+</div>
+
+<div id="notice-output-wrapper">
+    <div id="notice-output">
+        <div class="letterhead-bg" id="letterhead-bg-element"></div>
+        <div class="letter-content" id="letter-content-element">
+            
+            <div class="default-header" id="company-default-header">
+                <h2>सुमित एल्कोप्लास्ट कल्याण एम एस डब्लू प्रा. लि.</h2>
+            </div>
+            
+            <div style="text-align: right; font-weight: 600; margin-bottom: 10px;">
+                दिनांक : <span id="lbl-letter-date">23 मे २०२६</span>
+            </div>
+            
+            <div class="meta-info">
+                <div class="meta-row">
+                    <div class="meta-label">प्रती,</div>
+                    <div class="meta-value"></div>
+                </div>
+                <div class="meta-row">
+                    <div class="meta-label">श्री :</div>
+                    <div class="meta-value" id="lbl-emp-name" style="font-weight: 600;">................................................</div>
+                </div>
+                <div class="meta-row">
+                    <div class="meta-label">विभाग :</div>
+                    <div class="meta-value" id="lbl-emp-dept">................................................</div>
+                </div>
+                <div class="meta-row">
+                    <div class="meta-label">कर्मचारी तिकीट नंबर :</div>
+                    <div class="meta-value" id="lbl-emp-id" style="font-weight: 600;">................................................</div>
+                </div>
+            </div>
+            
+            <div class="letter-title">कामावरून कमी करण्याबाबतचे पत्र</div>
+            
+            <div class="letter-text">
+                आपल्या हजेरी पत्रकावरून असे निदर्शनास आले आहे, तसेच आपल्या वरिष्ठांनीही आम्हास कळविले आहे की, आपण आपल्या सुपरवायजर अथवा वरिष्ठ अधिकाऱ्यांची पूर्वपरवानगी न घेता <span id="lbl-dynamic-months-details" style="font-weight: 600;">........................</span> एकूण <span id="lbl-total-days" style="font-weight: 600;">......</span> एवढे दिवस कामावर गैरहजर आहात, तसेच या पुर्वी आपण विना परवानगी गैरहजर होता. आपण कामावर वारंवार गैरहजर असतातच पण आपण आपले काम योग्यरित्या करत नसल्याची तक्रार देखील आपल्या वरिष्ठांनी वारंवार केलेली आहे. त्यानुसार आपणास वेळोवेळी कंपनी कडून <strong><span id="lbl-warning-type">ताकीत पत्र</span></strong> देण्यात आलेले आहे तरी देखील आपल्या वर्तुनुकीत काहिही सुधारणा झालेली नाही. आपल्या सदर गैरहजेरीमुळे आणि बेशिस्त कामामुळे आपण काम करत असलेल्या विभागामध्ये प्रचंड अडचणी निर्माण झाल्या आहेत. आपले वरील कृत्य हे अत्यंत गंभीर स्वरूपाचे असून ते आपणास लागू असलेल्या स्थायी आदेशानुसार गैरवर्तुणूकीत मोडते. आपले कामावर वारंवार गैरहजर राहणे हे आपणास नोकरीची गरज नसल्याचे दर्शवत असल्याने, व्यवस्थापन आपले नाव कंपनीच्या हजेरी पटावरून कमी करत आहे याची नोंद घ्यावी.
+            </div>
+            
+            <div class="letter-text">
+                सदर पत्र मिळाल्याबरोबर, कंपनीने आपणास दिलेल्या सर्व वस्तु जसे की गणवेश, सेफ्टी शूज, कंपनीचे ओळखपत्र ईत्यादी एच आर विभागात आणून जमा करावेत आणि कंपनी आपले काही कायदेशीर देणे लागत असेल तर ते अकाउंट्स विभागातून घेवून जावे.
+            </div>
+            
+            <div class="sign-section">
+                सुमित एल्कोप्लास्ट कल्याण एम एस डब्लू प्रा. लि. करिता<br><br><br><br>
+                व्यवस्थापक –<br>
+                मानव संसाधन विभाग
+            </div>
+            
+            <div style="clear: both;"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let masterData = [];
+    let letterheadBase64 = "";
+    
+    // Yethil link madhe tumhi tumchi Google Sheet link taku shakta
+    const sheetCSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSeyEu_N_mJ9UStKc6sXa2jdpMOr6QxviTldIucayGD1fg-ShCDDCdlKcOFcmKPtBt8LJpcWRLLnsSF/pub?output=csv"; 
+
+    document.getElementById('letter-date').valueAsDate = new Date();
+
+    function initSheet() {
+        Papa.parse(sheetCSV, {
+            download: true,
+            header: true,
+            complete: function(results) {
+                masterData = results.data;
+                document.getElementById('status').innerText = "डेटा यशस्वीरित्या कनेक्ट झाला! ✅";
+                document.getElementById('status').style.color = "green";
+            },
+            error: function() {
+                document.getElementById('status').innerText = "डेटा कनेक्ट झाला नाही. इंटरनेट किंवा लिंक तपासा.";
+                document.getElementById('status').style.color = "red";
+            }
+        });
+    }
+
+    function findEmployee() {
+        const id = document.getElementById('emp-id').value.trim();
+        if(!id) return;
+        const emp = masterData.find(row => row['EMP CODE'] == id);
+        if(emp) {
+            document.getElementById('emp-name').value = emp['FULL NAME'] || '';
+            if(emp['DEPARTMENT']) {
+                document.getElementById('emp-dept').value = emp['DEPARTMENT'];
+            }
+        }
+    }
+
+    function addMonthRow() {
+        const container = document.getElementById('month-rows-wrapper');
+        const newRow = document.createElement('div');
+        newRow.className = 'month-row';
+        newRow.innerHTML = `
+            <select class="month-select">
+                <option value="जानेवारी २०२६">जानेवारी २०२६</option>
+                <option value="फेब्रुवारी २०२६">फेब्रुवारी २०२६</option>
+                <option value="मार्च २०२६">मार्च २०२६</option>
+                <option value="एप्रिल २०२६">एप्रिल २०२६</option>
+                <option value="मे २०२६">मे २०२६</option>
+                <option value="जून २०२६">जून २०२६</option>
+                <option value="जुलै २०२६">जुलै २०२६</option>
+                <option value="ऑगस्ट २०२६">ऑगस्ट २०२६</option>
+                <option value="सप्टेंबर २०२६">सप्टेंबर २०२६</option>
+                <option value="ऑक्टोबर २०२६">ऑक्टोबर २०२६</option>
+                <option value="नोव्हेंबर २०२६">नोव्हेंबर २०२६</option>
+                <option value="डिसेंबर २०२६">डिसेंबर २०२६</option>
+            </select>
+            <input type="number" class="days-input" placeholder="गैरहजर दिवस" oninput="calculateTotalDays()">
+            <button class="btn-remove" onclick="removeRow(this)">X</button>
+        `;
+        container.appendChild(newRow);
+        calculateTotalDays();
+    }
+
+    function removeRow(btn) {
+        const rows = document.querySelectorAll('.month-row');
+        if(rows.length > 1) {
+            btn.parentElement.remove();
+            calculateTotalDays();
+        } else {
+            alert("किमान एक महिना असणे आवश्यक आहे.");
+        }
+    }
+
+    function calculateTotalDays() {
+        let total = 0;
+        document.querySelectorAll('.days-input').forEach(input => {
+            const val = parseInt(input.value) || 0;
+            total += val;
+        });
+        document.getElementById('total-days-disp').innerText = total;
+        return total;
+    }
+
+    function handleLetterhead(input) {
+        const file = input.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                letterheadBase64 = e.target.result;
+                document.getElementById('letterhead-bg-element').style.backgroundImage = `url('${letterheadBase64}')`;
+                document.getElementById('company-default-header').style.display = 'none';
+                document.getElementById('top-padding').value = 160;
+                adjustPadding();
+            };
+            reader.readAsDataURL(file);
+        } else {
+            document.getElementById('company-default-header').style.display = 'block';
+            document.getElementById('letterhead-bg-element').style.backgroundImage = 'none';
+            document.getElementById('top-padding').value = 40;
+            adjustPadding();
+        }
+    }
+
+    function adjustPadding() {
+        const topP = document.getElementById('top-padding').value || 40;
+        const sideP = document.getElementById('side-padding').value || 40;
+        const out = document.getElementById('notice-output');
+        out.style.paddingTop = topP + 'px';
+        out.style.paddingLeft = sideP + 'px';
+        out.style.paddingRight = sideP + 'px';
+    }
+
+    function formatDateMarathi(dateStr) {
+        if(!dateStr) return '';
+        const parts = dateStr.split('-');
+        if(parts.length !== 3) return dateStr;
+        
+        const day = parts[2];
+        const monthMap = {
+            '01': 'जानेवारी', '02': 'फेब्रुवारी', '03': 'मार्च', '04': 'एप्रिल',
+            '05': 'मे', '06': 'जून', '07': 'जुलै', '08': 'ऑगस्ट',
+            '09': 'सप्टेंबर', '10': 'ऑक्टोबर', '11': 'नोव्हेंबर', '12': 'डिसेंबर'
+        };
+        const month = monthMap[parts[1]] || parts[1];
+        const year = parts[0];
+        return `${day} ${month} ${year}`;
+    }
+
+    function generateAndPrint() {
+        const name = document.getElementById('emp-name').value.trim();
+        if(!name) { alert("कृपया कर्मचाऱ्याचे नाव टाका किंवा तिकीट नंबर तपासा."); return; }
+        
+        const rawDate = document.getElementById('letter-date').value;
+        document.getElementById('lbl-letter-date').innerText = formatDateMarathi(rawDate);
+        document.getElementById('lbl-emp-name').innerText = name;
+        document.getElementById('lbl-emp-dept').innerText = document.getElementById('emp-dept').value;
+        document.getElementById('lbl-emp-id').innerText = document.getElementById('emp-id').value || '---';
+
+        // Warning type assignment
+        const warningSelect = document.getElementById('warning-type');
+        document.getElementById('lbl-warning-type').innerText = warningSelect.options[warningSelect.selectedIndex].text.split(' (')[0];
+
+        let phrases = [];
+        let totalMonthsCount = 0;
+        
+        document.querySelectorAll('.month-row').forEach(row => {
+            const mVal = row.querySelector('.month-select').value;
+            const dVal = row.querySelector('.days-input').value || '0';
+            phrases.push(`${mVal} मध्ये ${dVal} दिवस`);
+            totalMonthsCount++;
+        });
+        
+        const totalDays = calculateTotalDays();
+        
+        let dynamicMonthsText = phrases.join(', ');
+        if(phrases.length > 1) {
+            const lastIndex = dynamicMonthsText.lastIndexOf(', ');
+            dynamicMonthsText = dynamicMonthsText.substring(0, lastIndex) + ' आणि ' + dynamicMonthsText.substring(lastIndex + 2);
+        }
+        
+        dynamicMonthsText += ` या ${totalMonthsCount} महिन्यात`;
+        
+        document.getElementById('lbl-dynamic-months-details').innerText = dynamicMonthsText;
+        document.getElementById('lbl-total-days').innerText = totalDays;
+
+        adjustPadding();
+        
+        window.print();
+    }
+</script>
+</body>
+</html>
