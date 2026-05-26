@@ -38,24 +38,27 @@
         button.btn-generate { grid-column: 1 / -1; background: #28a745; color: white; border: none; padding: 15px; cursor: pointer; font-size: 18px; font-weight: 600; border-radius: 6px; margin-top: 15px; transition: background 0.2s; font-family: 'Poppins', sans-serif; }
         button.btn-generate:hover { background-color: #218838; }
         
-        /* Print Output Styles - Adjusted for Single Page Fit */
+        /* Print Output Styles - Adjusted for Font Size & Left Sign */
         #notice-output-wrapper { display: none; background: white; padding: 0; position: relative; }
-        #notice-output { padding: 30px; line-height: 1.5; font-size: 15px; color: black; position: relative; box-sizing: border-box; }
+        #notice-output { padding: 30px; line-height: 1.6; font-size: 16.5px; color: black; position: relative; box-sizing: border-box; }
         
         .letterhead-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; background-repeat: no-repeat; background-size: 100% 100%; display: none; pointer-events: none; }
-        .letter-content { position: relative; z-index: 2; width: 100%; }
+        .letter-content { position: relative; z-index: 2; width: 100%; font-weight: 400; }
         
         .default-header { text-align: center; margin-bottom: 15px; border-bottom: 2px solid #000; padding-bottom: 8px; }
-        .default-header h2 { margin: 0; font-size: 22px; color: #000; font-weight: 700; }
+        .default-header h2 { margin: 0; font-size: 24px; color: #000; font-weight: 700; }
         
-        .letter-title { text-align: center; font-weight: 700; text-decoration: underline; font-size: 18px; margin-top: 15px; margin-bottom: 20px; }
+        .letter-title { text-align: center; font-weight: 700; text-decoration: underline; font-size: 19px; margin-top: 15px; margin-bottom: 20px; }
         .meta-info { display: table; width: 100%; margin-bottom: 15px; }
         .meta-row { display: table-row; }
-        .meta-label { display: table-cell; font-weight: 600; width: 160px; padding: 3px 0; }
-        .meta-value { display: table-cell; padding: 3px 0; }
+        .meta-label { display: table-cell; font-weight: 400; width: 180px; padding: 3px 0; }
+        .meta-value { display: table-cell; padding: 3px 0; font-weight: 400; }
         
-        .letter-text { text-align: justify; text-indent: 40px; margin-bottom: 15px; font-size: 15px; }
-        .sign-section { margin-top: 35px; font-weight: 600; float: right; text-align: right; width: 300px; line-height: 1.4; }
+        .letter-text { text-align: justify; text-indent: 40px; margin-bottom: 15px; font-size: 16.5px; font-weight: 400; }
+        .letter-text strong, .letter-text span { font-weight: 400; } /* Keep text normal as requested */
+        
+        /* Left-aligned and bold signature block */
+        .sign-section { margin-top: 35px; font-weight: 700; float: left; text-align: left; width: 400px; line-height: 1.5; font-size: 16.5px; }
         
         @media print {
             @page { size: A4; margin: 0; }
@@ -73,7 +76,7 @@
 <div class="container">
     <div class="header-box">
         <h1>सुमित एल्कोप्लास्ट कल्याण एम एस डब्लू प्रा. लि.</h1>
-        <p>कामावरून कमी करण्याबाबतचे पत्र जनरेटर</p>
+        <p>कामावरून कमी करण्याबाबतचे पत्र जनरेटर (नवीन फॉरमॅट)</p>
     </div>
 
     <div id="status" style="color: blue;">डेटा कनेक्ट होत आहे, कृपया थांबा...</div>
@@ -95,6 +98,11 @@
         <div>
             <label>पत्राची तारीख (Letter Date):</label>
             <input type="date" id="letter-date">
+        </div>
+        
+        <div style="grid-column: 1 / -1;">
+            <label>कर्मचाऱ्याचा पत्ता (Address):</label>
+            <textarea id="emp-address" rows="2" placeholder="येथे कर्मचाऱ्याचा पत्ता टाका..."></textarea>
         </div>
         
         <div style="grid-column: 1 / -1;">
@@ -200,7 +208,7 @@
                 <h2>सुमित एल्कोप्लास्ट कल्याण एम एस डब्लू प्रा. लि.</h2>
             </div>
             
-            <div style="text-align: right; font-weight: 600; margin-bottom: 10px;">
+            <div style="text-align: right; font-weight: 400; margin-bottom: 10px;">
                 दिनांक : <span id="lbl-letter-date">23 मे २०२६</span>
             </div>
             
@@ -211,7 +219,7 @@
                 </div>
                 <div class="meta-row">
                     <div class="meta-label">श्री :</div>
-                    <div class="meta-value" id="lbl-emp-name" style="font-weight: 600;">................................................</div>
+                    <div class="meta-value" id="lbl-emp-name">................................................</div>
                 </div>
                 <div class="meta-row">
                     <div class="meta-label">विभाग :</div>
@@ -219,18 +227,22 @@
                 </div>
                 <div class="meta-row">
                     <div class="meta-label">कर्मचारी तिकीट नंबर :</div>
-                    <div class="meta-value" id="lbl-emp-id" style="font-weight: 600;">................................................</div>
+                    <div class="meta-value" id="lbl-emp-id">................................................</div>
+                </div>
+                <div class="meta-row">
+                    <div class="meta-label">पत्ता :</div>
+                    <div class="meta-value" id="lbl-emp-address">................................................</div>
                 </div>
             </div>
             
             <div class="letter-title">कामावरून कमी करण्याबाबतचे पत्र</div>
             
             <div class="letter-text">
-                आपल्या हजेरी पत्रकावरून असे निदर्शनास आले आहे, तसेच आपल्या वरिष्ठांनीही आम्हास कळविले आहे की, आपण आपल्या सुपरवायजर अथवा वरिष्ठ अधिकाऱ्यांची पूर्वपरवानगी न घेता <span id="lbl-dynamic-months-details" style="font-weight: 600;">........................</span> एकूण <span id="lbl-total-days" style="font-weight: 600;">......</span> एवढे दिवस कामावर गैरहजर आहात, तसेच या पुर्वी आपण विना परवानगी गैरहजर होता. आपण कामावर वारंवार गैरहजर असतातच पण आपण आपले काम योग्यरित्या करत नसल्याची तक्रार देखील आपल्या वरिष्ठांनी वारंवार केलेली आहे. त्यानुसार आपणास वेळोवेळी कंपनी कडून <strong><span id="lbl-warning-type">ताकीत पत्र</span></strong> देण्यात आलेले आहे तरी देखील आपल्या वर्तुनुकीत काहिही सुधारणा झालेली नाही. आपल्या सदर गैरहजेरीमुळे आणि बेशिस्त कामामुळे आपण काम करत असलेल्या विभागामध्ये प्रचंड अडचणी निर्माण झाल्या आहेत. आपले वरील कृत्य हे अत्यंत गंभीर स्वरूपाचे असून ते आपणास लागू असलेल्या स्थायी आदेशानुसार गैरवर्तुणूकीत मोडते. आपले कामावर वारंवार गैरहजर राहणे हे आपणास नोकरीची गरज नसल्याचे दर्शवत असल्याने, व्यवस्थापन आपले नाव कंपनीच्या हजेरी पटावरून कमी करत आहे याची नोंद घ्यावी.
+                आपल्या हजेरी पत्रकावरून असे निदर्शनास आले आहे, तसेच आपल्या वरिष्ठांनीही आम्हास कळविले आहे की, आपण आपल्या सुपरवायजर अथवा वरिष्ठ अधिकाऱ्यांची पूर्वपरवानगी न घेता <span id="lbl-dynamic-months-details">........................</span> एकूण <span id="lbl-total-days">......</span> एवढे दिवस कामावर गैरहजर आहात, तसेच या पुर्वी आपण विना परवानगी गैरहजर होता. आपण कामावर वारंवार गैरहजर असतातच पण आपण आपले काम योग्यरित्या करत नसल्याची तक्रार देखील आपल्या वरिष्ठांनी वारंवार केलेली आहे. त्यानुसार आपणास वेळोवेळी कंपनी कडून <span id="lbl-warning-type">ताकीत पत्र</span> देण्यात आलेले आहे तरी देखील आपल्या वर्तुनुकीत काहिही सुधारणा झालेली नाही. आपल्या सदर गैरहजेरीमुळे आणि बेशिस्त कामामुळे आपण काम करत असलेल्या विभागामध्ये प्रचंड अडचणी निर्माण झाल्या आहेत. आपले वरील कृत्य हे अत्यंत गंभीर स्वरूपाचे असून ते आपणास लागू असलेल्या स्थायी आदेशानुसार गैरवर्तुणूकीत मोडते. आपले कामावर वारंवार गैरहजर राहणे हे आपणास नोकरीची गरज नसल्याचे दर्शवत असल्याने, व्यवस्थापन आपले नाव कंपनीच्या हजेरी पटावरून कमी करत आहे याची नोंद घ्यावी.
             </div>
             
             <div class="letter-text">
-                सदर पत्र मिळाल्याबरोबर, कंपनीने आपणास दिलेल्या सर्व वस्तु जसे की गणवेश, सेफ्टी शूज, कंपनीचे ओळखपत्र ईत्यादी एच आर विभागात आणून जमा करावेत आणि कंपनी आपले काही कायदेशीर देणे लागत असेल तर ते अकाउंट्स विभागातून घेवून जावे.
+                सदर पत्र मिळाल्याबरोबर, कंपनीने आपणास दिलेल्या सर्व वस्तु जसे की गणवेश,सेफ्टी शूज, कंपनीचे ओळखपत्र ईत्यादी एच आर विभागात आणून जमा करावेत आणि कंपनी आपले काही कायदेशीर देणे लागत असेल तर ते अकाउंट्स विभागातून घेवून जावे.
             </div>
             
             <div class="sign-section">
@@ -248,7 +260,6 @@
     let masterData = [];
     let letterheadBase64 = "";
     
-    // Yethil link madhe tumhi tumchi Google Sheet link taku shakta
     const sheetCSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSeyEu_N_mJ9UStKc6sXa2jdpMOr6QxviTldIucayGD1fg-ShCDDCdlKcOFcmKPtBt8LJpcWRLLnsSF/pub?output=csv"; 
 
     document.getElementById('letter-date').valueAsDate = new Date();
@@ -278,9 +289,17 @@
             if(emp['DEPARTMENT']) {
                 document.getElementById('emp-dept').value = emp['DEPARTMENT'];
             }
+            if(emp['ADDRESS']) {
+                document.getElementById('emp-address').value = emp['ADDRESS'];
+            }
         }
     }
 
+    // Fix spelling error in HTML content text
+    html_content = document.documentElement.outerHTML;
+</script>
+<script>
+    // Re-declaring standard functions to override and handle form generation logic properly
     function addMonthRow() {
         const container = document.getElementById('month-rows-wrapper');
         const newRow = document.createElement('div');
@@ -381,10 +400,12 @@
         document.getElementById('lbl-emp-name').innerText = name;
         document.getElementById('lbl-emp-dept').innerText = document.getElementById('emp-dept').value;
         document.getElementById('lbl-emp-id').innerText = document.getElementById('emp-id').value || '---';
+        
+        const addr = document.getElementById('emp-address').value.trim();
+        document.getElementById('lbl-emp-address').innerText = addr ? addr : '---';
 
-        // Warning type assignment
         const warningSelect = document.getElementById('warning-type');
-        document.getElementById('lbl-warning-type').innerText = warningSelect.options[warningSelect.selectedIndex].text.split(' (')[0];
+        document.getElementById('lbl-warning-type').innerText = warningSelect.options[warningSelect.selectedIndex].text;
 
         let phrases = [];
         let totalMonthsCount = 0;
@@ -410,7 +431,6 @@
         document.getElementById('lbl-total-days').innerText = totalDays;
 
         adjustPadding();
-        
         window.print();
     }
 </script>
